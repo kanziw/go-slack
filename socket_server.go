@@ -16,6 +16,7 @@ import (
 
 type SocketServer interface {
 	Listen()
+	Run() error
 	OnReactionAdded(f handler.OnReactionAddedHandlerFunc)
 }
 
@@ -66,6 +67,10 @@ func (s *DefaultSocketServer) Listen() {
 		}
 		entry.Info("succeeded")
 	}
+}
+
+func (s *DefaultSocketServer) Run() error {
+	return s.SocketClient().Run()
 }
 
 func (s *DefaultSocketServer) OnReactionAdded(f handler.OnReactionAddedHandlerFunc) {
