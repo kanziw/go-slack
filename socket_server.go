@@ -15,6 +15,8 @@ import (
 	"github.com/kanziw/go-slack/handler"
 )
 
+type Client = slack.Client
+
 type SocketServer interface {
 	Listen()
 	Run() error
