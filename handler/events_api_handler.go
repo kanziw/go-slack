@@ -16,7 +16,7 @@ const (
 
 var errUnexpectedInnerEventData = errors.New("unexpected evt.data.inner_event.data")
 
-type OnReactionAddedHandlerFunc = func(d *slackevents.ReactionAddedEvent) error
+type OnReactionAddedHandlerFunc = func(ctx context.Context, d *slackevents.ReactionAddedEvent) error
 
 func EventsAPIHandler(
 	ctx context.Context,
@@ -36,7 +36,7 @@ func EventsAPIHandler(
 			return errors.WithStack(errUnexpectedInnerEventData)
 		}
 		if onReactionAddedHandler != nil {
-			return onReactionAddedHandler(d)
+			return onReactionAddedHandler(ctx, d)
 		}
 		return nil
 	}
