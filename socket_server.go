@@ -20,6 +20,7 @@ type Client = slack.Client
 type SocketServer interface {
 	Listen()
 	Run() error
+	SlackAPI() *Client
 
 	OnReactionAdded(f handler.OnReactionAddedHandlerFunc)
 	OnAppMentionCommand(command string, f handler.OnAppMentionCommandHandlerFunc)
@@ -28,7 +29,7 @@ type SocketServer interface {
 type DefaultSocketServer struct {
 	options options
 
-	api    *slack.Client
+	api    *Client
 	client *socketmode.Client
 
 	onReactionAddedHandler  handler.OnReactionAddedHandlerFunc
@@ -111,7 +112,7 @@ func (s *DefaultSocketServer) SocketClient() *socketmode.Client {
 	return s.client
 }
 
-func (s *DefaultSocketServer) SlackAPI() *slack.Client {
+func (s *DefaultSocketServer) SlackAPI() *Client {
 	return s.api
 }
 
