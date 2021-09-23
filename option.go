@@ -1,7 +1,8 @@
 package slack
 
 type options struct {
-	debug bool
+	debug       bool
+	helpMessage string
 }
 
 type Option interface {
@@ -16,4 +17,14 @@ func (b debugOption) apply(opts *options) {
 
 func WithDebug(c bool) Option {
 	return debugOption(c)
+}
+
+type helpMessageOption string
+
+func (s helpMessageOption) apply(opts *options) {
+	opts.helpMessage = string(s)
+}
+
+func WithHelpMessage(s string) Option {
+	return helpMessageOption(s)
 }

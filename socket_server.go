@@ -2,6 +2,7 @@ package slack
 
 import (
 	"context"
+	"sync"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -17,14 +18,19 @@ import (
 type SocketServer interface {
 	Listen()
 	Run() error
+
 	OnReactionAdded(f handler.OnReactionAddedHandlerFunc)
+	OnAppMentionCommand(command string, f handler.OnAppMentionCommandHandlerFunc)
 }
 
 type DefaultSocketServer struct {
+	options options
+
 	api    *slack.Client
 	client *socketmode.Client
 
-	onReactionAddedHandler handler.OnReactionAddedHandlerFunc
+	onReactionAddedHandler  handler.OnReactionAddedHandlerFunc
+	onAppMentionCommandFunc sync.Map
 }
 
 func (s *DefaultSocketServer) Listen() {
@@ -48,7 +54,7 @@ func (s *DefaultSocketServer) Listen() {
 					return errors.New("unknown event type:" + string(evt.Type))
 				}
 				s.SocketClient().Ack(*evt.Request)
-				if err := handler.EventsAPIHandler(ctx, eventsAPIEvent, s.onReactionAddedHandler); err != nil {
+				if err := handler.EventsAPIHandler(ctx, eventsAPIEvent, s.onReactionAddedHandler, s.onAppMentionCommandHandler); err != nil {
 					s.SocketClient().Debugf(err.Error())
 					return err
 				}
@@ -62,6 +68,11 @@ func (s *DefaultSocketServer) Listen() {
 		}()
 		entry := ctxlogrus.Extract(ctx).WithContext(ctx)
 		if err != nil {
+			if errors.Cause(err) == handler.ErrInvalidCommand {
+				if err := s.SendHelpMessage(ctx); err != nil {
+					logrus.WithError(err).Error("send help message")
+				}
+			}
 			entry.WithField("error", err).Error(err.Error())
 			continue
 		}
@@ -77,6 +88,23 @@ func (s *DefaultSocketServer) OnReactionAdded(f handler.OnReactionAddedHandlerFu
 	s.onReactionAddedHandler = f
 }
 
+func (s *DefaultSocketServer) OnAppMentionCommand(command string, f handler.OnAppMentionCommandHandlerFunc) {
+	s.onAppMentionCommandFunc.Store(command, f)
+}
+
+func (s *DefaultSocketServer) onAppMentionCommandHandler(ctx context.Context, d *slackevents.AppMentionEvent, command string, args []string) error {
+	i, ok := s.onAppMentionCommandFunc.Load(command)
+	if !ok {
+		return s.SendHelpMessage(ctx)
+	}
+
+	f, ok := i.(handler.OnAppMentionCommandHandlerFunc)
+	if !ok {
+		return errors.New("unexpected func founded")
+	}
+	return f(ctx, d, args)
+}
+
 func (s *DefaultSocketServer) SocketClient() *socketmode.Client {
 	return s.client
 }
@@ -85,9 +113,22 @@ func (s *DefaultSocketServer) SlackAPI() *slack.Client {
 	return s.api
 }
 
+func (s *DefaultSocketServer) SendHelpMessage(ctx context.Context) error {
+	channel, ok := ctx.Value(handler.CtxChannelMarkerKey).(string)
+	if !ok {
+		return errors.New("channel not found")
+	}
+
+	if _, _, _, err := s.api.SendMessageContext(ctx, channel, slack.MsgOptionText(s.options.helpMessage, false)); err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
 func NewSocketServer(botToken, rtmToken string, opts ...Option) SocketServer {
 	options := options{
-		debug: false,
+		debug:       false,
+		helpMessage: "override help message required",
 	}
 
 	for _, o := range opts {
@@ -105,8 +146,10 @@ func NewSocketServer(botToken, rtmToken string, opts ...Option) SocketServer {
 	)
 
 	return &DefaultSocketServer{
-		api:                    api,
-		client:                 client,
-		onReactionAddedHandler: nil,
+		options:                 options,
+		api:                     api,
+		client:                  client,
+		onReactionAddedHandler:  nil,
+		onAppMentionCommandFunc: sync.Map{},
 	}
 }
