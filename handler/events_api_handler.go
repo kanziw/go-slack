@@ -8,6 +8,7 @@ import (
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 )
 
@@ -25,7 +26,7 @@ var (
 )
 
 type OnReactionAddedHandlerFunc = func(ctx context.Context, d *slackevents.ReactionAddedEvent) error
-type OnAppMentionCommandHandlerFunc = func(ctx context.Context, d *slackevents.AppMentionEvent, args []string) error
+type OnAppMentionCommandHandlerFunc = func(ctx context.Context, d *slackevents.AppMentionEvent, api *slack.Client, args []string) error
 type OnAppMentionCommandHandlerExecutor = func(ctx context.Context, d *slackevents.AppMentionEvent, command string, args []string) error
 
 func EventsAPIHandler(

@@ -102,7 +102,7 @@ func (s *DefaultSocketServer) onAppMentionCommandHandler(ctx context.Context, d 
 	if !ok {
 		return errors.New("unexpected func founded")
 	}
-	return f(ctx, d, args)
+	return f(ctx, d, s.SlackAPI(), args)
 }
 
 func (s *DefaultSocketServer) SocketClient() *socketmode.Client {
