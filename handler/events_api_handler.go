@@ -2,9 +2,11 @@ package handler
 
 import (
 	"context"
+	"fmt"
 
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/slack-go/slack/slackevents"
 )
 
@@ -35,6 +37,14 @@ func EventsAPIHandler(
 			tags.Set(ctxTagsKeyInnerEventData, d)
 			return errors.WithStack(errUnexpectedInnerEventData)
 		}
+
+		tags.Set(ctxTagsKeyInnerEventData, logrus.Fields{
+			"user":        d.User,
+			"reaction":    d.Reaction,
+			"item_user":   d.ItemUser,
+			"description": fmt.Sprintf("%s User react using %s on %s's message", d.User, d.Reaction, d.ItemUser),
+		})
+
 		if onReactionAddedHandler != nil {
 			return onReactionAddedHandler(ctx, d)
 		}
