@@ -1,0 +1,14 @@
+run:
+  timeout: 3m
+linters:
+  enable:
+    - gomodguard
+    - ifshort
+    - exportloopref
+linters-settings:
+  gomodguard:
+    blocked:
+      versions:
+        - github.com/ericlagergren/decimal:
+            version: "> v0.0.0-20181231230500-73749d4874d5"
+            reason: "sqlboiler does not support later versions."
