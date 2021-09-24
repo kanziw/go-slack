@@ -43,7 +43,7 @@ jobs:
       - name: Test
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
-          make test | go tool test2json > test.json
+          go test -json ./... > test.json
           make test
 
       - name: Annotate results
