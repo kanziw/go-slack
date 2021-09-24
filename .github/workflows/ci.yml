@@ -42,6 +42,7 @@ jobs:
 
       - name: Test
         run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
           make test | tee test.txt
           cat test.txt | go tool test2json > test.json
 

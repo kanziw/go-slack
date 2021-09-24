@@ -8,7 +8,9 @@ init:
 .PHONY: format
 ## format: format files
 format:
+	@go get golang.org/x/tools/cmd/goimports
 	@go get -d github.com/aristanetworks/goarista/cmd/importsort
+	goimports -local github.com/kanziw -w .
 	importsort -s github.com/kanziw -w $$(find . -name "*.go")
 	gofmt -s -w .
 	go mod tidy
