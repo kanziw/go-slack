@@ -42,4 +42,11 @@ jobs:
 
       - name: Test
         run: |
-          make test
+          make test | tee test.txt
+          cat test.txt | go tool test2json > test.json
+
+      - name: Annotate results
+        if: always()
+        uses: guyarb/golang-test-annotations@v0.3.0
+        with:
+          test-results: test.json
