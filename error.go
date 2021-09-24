@@ -51,7 +51,7 @@ func (s channelOption) apply(opts *errOptions) {
 	opts.channel = toStrPtr(string(s))
 }
 
-func withChannel(s string) ErrorOption {
+func WithChannel(s string) ErrorOption {
 	return channelOption(s)
 }
 
