@@ -25,7 +25,6 @@ jobs:
 
   unit:
     name: Unit Tests
-    if: ${{ false }}
     runs-on: ubuntu-20.04
     strategy:
       matrix:
