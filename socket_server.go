@@ -89,7 +89,7 @@ func (s *DefaultSocketServer) SlackAPI() *Client {
 }
 
 func (s *DefaultSocketServer) SendHelpMessage(ctx context.Context, channel string) error {
-	if _, _, _, err := s.api.SendMessageContext(ctx, channel, slack.MsgOptionText(s.options.helpMessage, false)); err != nil {
+	if err := SendMessage(ctx, s.SlackAPI(), channel, s.options.helpMessage); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
