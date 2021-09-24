@@ -28,7 +28,7 @@ func TestAppMentionCommand(t *testing.T) {
 				e, ok := err.(SlackError)
 				assert.True(t, ok)
 				assert.NotNil(t, e.Channel())
-				assert.Equal(t, testChannel, *e.Channel())
+				assert.Equal(t, testChannel+"1", *e.Channel())
 			},
 		},
 	}
