@@ -20,20 +20,20 @@ const (
 
 var (
 	errUnexpectedInnerEventData = errors.New("unexpected evt.data.inner_event.data")
-	ErrInvalidCommand           = errors.New("invalid command")
+	errInvalidCommand           = errors.New("invalid command")
 
-	CtxChannelMarkerKey = &struct{}{}
+	ctxChannelMarkerKey = &struct{}{}
 )
 
-type OnReactionAddedHandlerFunc = func(ctx context.Context, d *slackevents.ReactionAddedEvent) error
-type OnAppMentionCommandHandlerFunc = func(ctx context.Context, d *slackevents.AppMentionEvent, api *slack.Client, args []string) error
-type OnAppMentionCommandHandlerExecutor = func(ctx context.Context, d *slackevents.AppMentionEvent, command string, args []string) error
+type onReactionAddedHandlerFunc = func(ctx context.Context, d *slackevents.ReactionAddedEvent) error
+type onAppMentionCommandHandlerFunc = func(ctx context.Context, d *slackevents.AppMentionEvent, api *slack.Client, args []string) error
+type onAppMentionCommandHandlerExecutor = func(ctx context.Context, d *slackevents.AppMentionEvent, command string, args []string) error
 
-func EventsAPIHandler(
+func handleEventsAPI(
 	ctx context.Context,
 	eventsAPIEvent slackevents.EventsAPIEvent,
-	onReactionAddedHandler OnReactionAddedHandlerFunc,
-	onAppMentionCommand OnAppMentionCommandHandlerExecutor,
+	onReactionAddedHandler onReactionAddedHandlerFunc,
+	onAppMentionCommand onAppMentionCommandHandlerExecutor,
 ) error {
 	tags := grpc_ctxtags.Extract(ctx)
 	tags.Set(ctxTagsEventDataType, eventsAPIEvent.Type)
@@ -55,9 +55,9 @@ func EventsAPIHandler(
 
 		ss := strings.Split(strings.TrimSpace(d.Text), " ")
 		if len(ss) < 2 {
-			return errors.WithStack(ErrInvalidCommand)
+			return errors.WithStack(errInvalidCommand)
 		}
-		return onAppMentionCommand(context.WithValue(ctx, CtxChannelMarkerKey, d.Channel), d, strings.ToLower(ss[1]), ss[2:])
+		return onAppMentionCommand(context.WithValue(ctx, ctxChannelMarkerKey, d.Channel), d, strings.ToLower(ss[1]), ss[2:])
 	case slackevents.ReactionAdded:
 		d, ok := eventsAPIEvent.InnerEvent.Data.(*slackevents.ReactionAddedEvent)
 		if !ok {
