@@ -19,8 +19,8 @@ const (
 )
 
 type onReactionAddedHandlerFunc = func(ctx context.Context, d *slackevents.ReactionAddedEvent) error
-type onAppMentionCommandHandlerFunc = func(ctx context.Context, d *slackevents.AppMentionEvent, api *slack.Client, args []string) error
-type onAppMentionCommandHandlerExecutor = func(ctx context.Context, d *slackevents.AppMentionEvent, command string, args []string) error
+type onAppMentionCommandHandlerFunc = func(ctx context.Context, d *AppMentionEvent, api *slack.Client, args []string) error
+type onAppMentionCommandHandlerExecutor = func(ctx context.Context, d *AppMentionEvent, command string, args []string) error
 
 func handleEventsAPI(
 	ctx context.Context,
@@ -34,7 +34,7 @@ func handleEventsAPI(
 
 	switch eventsAPIEvent.InnerEvent.Type {
 	case slackevents.AppMention:
-		d, ok := eventsAPIEvent.InnerEvent.Data.(*slackevents.AppMentionEvent)
+		d, ok := eventsAPIEvent.InnerEvent.Data.(*AppMentionEvent)
 		if !ok {
 			tags.Set(ctxTagsKeyInnerEventData, d)
 			return errors.WithStack(errUnexpectedInnerEventData)

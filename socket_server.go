@@ -69,7 +69,7 @@ func (s *DefaultSocketServer) OnAppMentionCommand(command string, f onAppMention
 	s.onAppMentionCommandFunc.Store(command, f)
 }
 
-func (s *DefaultSocketServer) onAppMentionCommandHandler(ctx context.Context, d *slackevents.AppMentionEvent, command string, args []string) error {
+func (s *DefaultSocketServer) onAppMentionCommandHandler(ctx context.Context, d *AppMentionEvent, command string, args []string) error {
 	i, ok := s.onAppMentionCommandFunc.Load(command)
 	if !ok {
 		return s.SendHelpMessage(ctx, d.Channel)

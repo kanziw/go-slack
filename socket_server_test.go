@@ -55,7 +55,7 @@ func appMentionEvtWithCommand(command string) slackevents.EventsAPIEvent {
 		Data:     nil,
 		InnerEvent: slackevents.EventsAPIInnerEvent{
 			Type: slackevents.AppMention,
-			Data: &slackevents.AppMentionEvent{
+			Data: &AppMentionEvent{
 				User:    testUser,
 				Text:    command,
 				Channel: testChannel,
