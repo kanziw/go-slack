@@ -16,8 +16,9 @@ format:
 .PHONY: test
 ## test: run tests
 test:
-	@go install github.com/rakyll/gotest
+	@go get -d github.com/rakyll/gotest
 	gotest -p 1 -race -cover -v ./...
+	$(MAKE) format
 
 .PHONY: coverage
 ## coverage: run tests with coverage

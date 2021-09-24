@@ -42,12 +42,12 @@ func (s *DefaultSocketServer) Listen() {
 		)
 		err := s.handleSocketEvent(ctx, evt)
 		entry := ctxlogrus.Extract(ctx).WithContext(ctx)
-		if err != nil {
-			if errors.Cause(err) == errInvalidCommand {
-				if err := s.SendHelpMessage(ctx); err != nil {
-					logrus.WithError(err).Error("send help message")
-				}
+		if e, ok := err.(SlackError); ok && errors.Cause(err) == errInvalidCommand && e.Channel() != nil {
+			if err := s.SendHelpMessage(ctx, *e.Channel()); err != nil {
+				logrus.WithError(err).Error("send help message")
 			}
+		}
+		if err != nil {
 			entry.WithField("error", err).Error(err.Error())
 			continue
 		}
@@ -70,7 +70,7 @@ func (s *DefaultSocketServer) OnAppMentionCommand(command string, f onAppMention
 func (s *DefaultSocketServer) onAppMentionCommandHandler(ctx context.Context, d *slackevents.AppMentionEvent, command string, args []string) error {
 	i, ok := s.onAppMentionCommandFunc.Load(command)
 	if !ok {
-		return s.SendHelpMessage(ctx)
+		return s.SendHelpMessage(ctx, d.Channel)
 	}
 
 	f, ok := i.(onAppMentionCommandHandlerFunc)
@@ -88,12 +88,7 @@ func (s *DefaultSocketServer) SlackAPI() *Client {
 	return s.api
 }
 
-func (s *DefaultSocketServer) SendHelpMessage(ctx context.Context) error {
-	channel, ok := ctx.Value(ctxChannelMarkerKey).(string)
-	if !ok {
-		return errors.New("channel not found")
-	}
-
+func (s *DefaultSocketServer) SendHelpMessage(ctx context.Context, channel string) error {
 	if _, _, _, err := s.api.SendMessageContext(ctx, channel, slack.MsgOptionText(s.options.helpMessage, false)); err != nil {
 		return errors.WithStack(err)
 	}

@@ -18,13 +18,6 @@ const (
 	ctxTagsKeyInnerEventData = "evt.data.inner_event.data"
 )
 
-var (
-	errUnexpectedInnerEventData = errors.New("unexpected evt.data.inner_event.data")
-	errInvalidCommand           = errors.New("invalid command")
-
-	ctxChannelMarkerKey = &struct{}{}
-)
-
 type onReactionAddedHandlerFunc = func(ctx context.Context, d *slackevents.ReactionAddedEvent) error
 type onAppMentionCommandHandlerFunc = func(ctx context.Context, d *slackevents.AppMentionEvent, api *slack.Client, args []string) error
 type onAppMentionCommandHandlerExecutor = func(ctx context.Context, d *slackevents.AppMentionEvent, command string, args []string) error
@@ -55,9 +48,9 @@ func handleEventsAPI(
 
 		ss := strings.Split(strings.TrimSpace(d.Text), " ")
 		if len(ss) < 2 {
-			return errors.WithStack(errInvalidCommand)
+			return NewSlackError(errors.WithStack(errInvalidCommand), withChannel(d.Channel))
 		}
-		return onAppMentionCommand(context.WithValue(ctx, ctxChannelMarkerKey, d.Channel), d, strings.ToLower(ss[1]), ss[2:])
+		return onAppMentionCommand(ctx, d, strings.ToLower(ss[1]), ss[2:])
 	case slackevents.ReactionAdded:
 		d, ok := eventsAPIEvent.InnerEvent.Data.(*slackevents.ReactionAddedEvent)
 		if !ok {
