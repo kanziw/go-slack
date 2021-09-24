@@ -11,8 +11,6 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
-
-	"github.com/kanziw/go-slack/handler"
 )
 
 type Client = slack.Client
@@ -22,8 +20,8 @@ type SocketServer interface {
 	Run() error
 	SlackAPI() *Client
 
-	OnReactionAdded(f handler.OnReactionAddedHandlerFunc)
-	OnAppMentionCommand(command string, f handler.OnAppMentionCommandHandlerFunc)
+	OnReactionAdded(f OnReactionAddedHandlerFunc)
+	OnAppMentionCommand(command string, f OnAppMentionCommandHandlerFunc)
 }
 
 type DefaultSocketServer struct {
@@ -32,7 +30,7 @@ type DefaultSocketServer struct {
 	api    *Client
 	client *socketmode.Client
 
-	onReactionAddedHandler  handler.OnReactionAddedHandlerFunc
+	onReactionAddedHandler  OnReactionAddedHandlerFunc
 	onAppMentionCommandFunc sync.Map
 }
 
@@ -42,36 +40,10 @@ func (s *DefaultSocketServer) Listen() {
 			grpc_ctxtags.SetInContext(context.Background(), grpc_ctxtags.NewTags()),
 			logrus.WithField("evt.type", evt.Type),
 		)
-		err := func() error {
-			switch evt.Type {
-			case socketmode.RequestTypeHello:
-			case socketmode.EventTypeConnecting:
-				s.SocketClient().Debugln("Connecting to Slack with Socket Mode...")
-			case socketmode.EventTypeConnectionError:
-				s.SocketClient().Debugln("debug", "Connection failed. Retrying later...")
-			case socketmode.EventTypeConnected:
-				s.SocketClient().Debugln("debug", "Connected to Slack with Socket Mode.")
-			case socketmode.EventTypeEventsAPI:
-				eventsAPIEvent, ok := evt.Data.(slackevents.EventsAPIEvent)
-				if !ok {
-					return errors.New("unknown event type:" + string(evt.Type))
-				}
-				s.SocketClient().Ack(*evt.Request)
-				if err := handler.EventsAPIHandler(ctx, eventsAPIEvent, s.onReactionAddedHandler, s.onAppMentionCommandHandler); err != nil {
-					s.SocketClient().Debugf(err.Error())
-					return err
-				}
-			// TODO
-			case socketmode.EventTypeInteractive:
-			case socketmode.EventTypeSlashCommand:
-			default:
-				return errors.New("unexpected event type received")
-			}
-			return nil
-		}()
+		err := s.handleSocketEvent(ctx, evt)
 		entry := ctxlogrus.Extract(ctx).WithContext(ctx)
 		if err != nil {
-			if errors.Cause(err) == handler.ErrInvalidCommand {
+			if errors.Cause(err) == ErrInvalidCommand {
 				if err := s.SendHelpMessage(ctx); err != nil {
 					logrus.WithError(err).Error("send help message")
 				}
@@ -87,11 +59,11 @@ func (s *DefaultSocketServer) Run() error {
 	return s.SocketClient().Run()
 }
 
-func (s *DefaultSocketServer) OnReactionAdded(f handler.OnReactionAddedHandlerFunc) {
+func (s *DefaultSocketServer) OnReactionAdded(f OnReactionAddedHandlerFunc) {
 	s.onReactionAddedHandler = f
 }
 
-func (s *DefaultSocketServer) OnAppMentionCommand(command string, f handler.OnAppMentionCommandHandlerFunc) {
+func (s *DefaultSocketServer) OnAppMentionCommand(command string, f OnAppMentionCommandHandlerFunc) {
 	s.onAppMentionCommandFunc.Store(command, f)
 }
 
@@ -101,7 +73,7 @@ func (s *DefaultSocketServer) onAppMentionCommandHandler(ctx context.Context, d 
 		return s.SendHelpMessage(ctx)
 	}
 
-	f, ok := i.(handler.OnAppMentionCommandHandlerFunc)
+	f, ok := i.(OnAppMentionCommandHandlerFunc)
 	if !ok {
 		return errors.New("unexpected func founded")
 	}
@@ -117,7 +89,7 @@ func (s *DefaultSocketServer) SlackAPI() *Client {
 }
 
 func (s *DefaultSocketServer) SendHelpMessage(ctx context.Context) error {
-	channel, ok := ctx.Value(handler.CtxChannelMarkerKey).(string)
+	channel, ok := ctx.Value(CtxChannelMarkerKey).(string)
 	if !ok {
 		return errors.New("channel not found")
 	}
