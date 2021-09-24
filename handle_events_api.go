@@ -48,7 +48,7 @@ func handleEventsAPI(
 
 		ss := strings.Split(strings.TrimSpace(d.Text), " ")
 		if len(ss) < 2 {
-			return NewSlackError(errors.WithStack(errInvalidCommand), withChannel(d.Channel))
+			return NewSlackError(errors.WithStack(ErrInvalidCommand), withChannel(d.Channel))
 		}
 		return onAppMentionCommand(ctx, d, strings.ToLower(ss[1]), ss[2:])
 	case slackevents.ReactionAdded:

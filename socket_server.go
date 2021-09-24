@@ -42,7 +42,7 @@ func (s *DefaultSocketServer) Listen() {
 		)
 		err := s.handleSocketEvent(ctx, evt)
 		entry := ctxlogrus.Extract(ctx).WithContext(ctx)
-		if e, ok := err.(SlackError); ok && errors.Cause(err) == errInvalidCommand && e.Channel() != nil {
+		if e, ok := err.(SlackError); ok && errors.Cause(err) == ErrInvalidCommand && e.Channel() != nil {
 			if err := s.SendHelpMessage(ctx, *e.Channel()); err != nil {
 				logrus.WithError(err).Error("send help message")
 			}

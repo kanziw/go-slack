@@ -4,7 +4,7 @@ import "github.com/pkg/errors"
 
 var (
 	errUnexpectedInnerEventData = errors.New("unexpected evt.data.inner_event.data")
-	errInvalidCommand           = errors.New("invalid command")
+	ErrInvalidCommand           = errors.New("invalid command")
 )
 
 type SlackError interface {

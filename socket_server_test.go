@@ -23,7 +23,7 @@ func TestAppMentionCommand(t *testing.T) {
 		{
 			name:        "only mention",
 			command:     testUser,
-			expectedErr: errInvalidCommand,
+			expectedErr: ErrInvalidCommand,
 			additionalErrCheckFunc: func(err error) {
 				e, ok := err.(SlackError)
 				assert.True(t, ok)
