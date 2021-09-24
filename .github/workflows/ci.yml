@@ -43,7 +43,7 @@ jobs:
 
       - name: Test
         run: |
-          go test -json ./... > test.json
+          go test -json ./... > test.json 2> /dev/null
 
       - name: Annotate results
         if: always()
