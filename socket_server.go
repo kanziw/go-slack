@@ -14,6 +14,8 @@ import (
 )
 
 type Client = slack.Client
+type SocketClient = socketmode.Client
+type AppMentionEvent = slackevents.AppMentionEvent
 
 type SocketServer interface {
 	Listen()
@@ -28,7 +30,7 @@ type DefaultSocketServer struct {
 	options options
 
 	api    *Client
-	client *socketmode.Client
+	client *SocketClient
 
 	onReactionAddedHandler  onReactionAddedHandlerFunc
 	onAppMentionCommandFunc sync.Map
@@ -80,7 +82,7 @@ func (s *DefaultSocketServer) onAppMentionCommandHandler(ctx context.Context, d 
 	return f(ctx, d, s.SlackAPI(), args)
 }
 
-func (s *DefaultSocketServer) SocketClient() *socketmode.Client {
+func (s *DefaultSocketServer) SocketClient() *SocketClient {
 	return s.client
 }
 
