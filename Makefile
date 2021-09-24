@@ -8,8 +8,9 @@ init:
 .PHONY: format
 ## format: format files
 format:
-	@go get -d github.com/incu6us/goimports-reviser
-	find . -type f -name "*.go" -exec goimports-reviser -rm-unused -project-name github.com/kanziw -file-path {} \;
+	@go get -d github.com/aristanetworks/goarista/cmd/importsort
+	goimports -local github.com/kanziw -w .
+	importsort -s github.com/kanziw -w $$(find . -name "*.go")
 	gofmt -s -w .
 	go mod tidy
 
