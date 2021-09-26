@@ -9,7 +9,7 @@ init:
 ## format: format files
 format:
 	@go get golang.org/x/tools/cmd/goimports
-	@go get -d github.com/aristanetworks/goarista/cmd/importsort
+	@go get github.com/aristanetworks/goarista/cmd/importsort
 	goimports -local github.com/kanziw -w .
 	importsort -s github.com/kanziw -w $$(find . -name "*.go")
 	gofmt -s -w .
