@@ -20,7 +20,6 @@ format:
 test:
 	@go install github.com/rakyll/gotest@v0.0.6
 	gotest -p 1 -race -cover -v ./...
-	$(MAKE) format
 
 .PHONY: coverage
 ## coverage: run tests with coverage
@@ -31,8 +30,8 @@ coverage:
 .PHONY: lint
 ## lint: check everything's okay
 lint:
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.42.1
 	golangci-lint run ./...
-	go mod verify
 
 .PHONY: generate
 ## generate: generate source code for mocking
