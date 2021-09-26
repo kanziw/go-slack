@@ -8,8 +8,8 @@ init:
 .PHONY: format
 ## format: format files
 format:
-	@go get golang.org/x/tools/cmd/goimports
-	@go get github.com/aristanetworks/goarista/cmd/importsort
+	@go get -d golang.org/x/tools/cmd/goimports
+	@go get -d github.com/aristanetworks/goarista/cmd/importsort
 	goimports -local github.com/kanziw -w .
 	importsort -s github.com/kanziw -w $$(find . -name "*.go")
 	gofmt -s -w .
@@ -18,14 +18,14 @@ format:
 .PHONY: test
 ## test: run tests
 test:
-	@go get github.com/rakyll/gotest
+	@go install github.com/rakyll/gotest
 	gotest -p 1 -race -cover -v ./...
 	$(MAKE) format
 
 .PHONY: coverage
 ## coverage: run tests with coverage
 coverage:
-	@go get github.com/rakyll/gotest
+	@go install github.com/rakyll/gotest
 	gotest -p 1 -race -coverprofile=coverage.txt -covermode=atomic -v ./...
 
 .PHONY: lint
