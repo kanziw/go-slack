@@ -25,11 +25,10 @@ jobs:
 
   unit:
     name: Unit Tests
-    if: ${{ false }}
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        go: [1.15, 1.16, 1.17]
+        go: [1.17]
     steps:
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v2
